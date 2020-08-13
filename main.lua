@@ -1,3 +1,4 @@
+local sti = require "sti"
 
 function love.load()
   player = {}
@@ -11,6 +12,10 @@ function love.load()
   player.img = love.graphics.newImage('assets/car-red.png')
   player.width = player.img:getWidth()
   player.height = player.img:getHeight()
+
+  love.graphics.setBackgroundColor(1, 1, 1)
+
+  map = sti("assets/tiled/race_01.lua")                                                          -- Load map file
 end
 
 function love.update(dt)
@@ -39,8 +44,11 @@ function love.update(dt)
 
   player.x = player.x + math.cos(player.rotate) * player.speed * dt
   player.y = player.y + math.sin(player.rotate) * player.speed * dt
+
+  map:update(dt)
 end
 
 function love.draw()
+  map:draw()
   love.graphics.draw(player.img, player.x, player.y, player.rotate, 1, 1, player.width/2, player.height/2)
 end
