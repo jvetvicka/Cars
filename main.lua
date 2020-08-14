@@ -1,54 +1,52 @@
 local sti = require "sti"
+require "player"
 
 function love.load()
   player = {}
-  player.x = 200
-  player.y = 200
+  player.x = 640
+  player.y = 100
   player.speed = 0
   player.maxSpeed = 100
   player.acceleration = 90
   player.deceleration = player.acceleration * 0.7
   player.rotate = 0
-  player.img = love.graphics.newImage('assets/car-red.png')
+  player.img = love.graphics.newImage('assets/player.png')
   player.width = player.img:getWidth()
   player.height = player.img:getHeight()
 
-  love.graphics.setBackgroundColor(1, 1, 1)
+  -- Collision
+ -- Set world meter size (in pixels)
+ love.physics.setMeter(32)
 
-  map = sti("assets/tiled/race_01.lua")                                                          -- Load map file
+ -- Load a map exported to Lua from Tiled
+ map = sti("assets/tiled/race_01.lua", { "box2d" })
+
+ -- Prepare physics world with horizontal and vertical gravity
+ world = love.physics.newWorld(0, 0, true)
+
+ -- Prepare collision objects
+ map:box2d_init(world)
+
+ -- Create a Custom Layer
+ map:addCustomLayer("Sprite Layer", 8)
 end
 
 function love.update(dt)
-  local rotAmount = 5 * dt
-
-  if love.keyboard.isDown("right") then
-    player.rotate = player.rotate + rotAmount
-  elseif love.keyboard.isDown("left") then
-    player.rotate = player.rotate - rotAmount
-  end
-
-  if love.keyboard.isDown("up") then
-    player.speed = player.speed + player.acceleration * dt
-  elseif love.keyboard.isDown("down") then
-      player.speed = player.speed - player.acceleration * dt
-  else
-      player.speed = player.speed - player.deceleration * dt
-  end
-
-  if player.speed > player.maxSpeed then
-      player.speed = player.maxSpeed
-  elseif player.speed < 0 then
-      player.speed = 0
-  end
-
-
-  player.x = player.x + math.cos(player.rotate) * player.speed * dt
-  player.y = player.y + math.sin(player.rotate) * player.speed * dt
-
+  playerMovement(dt)
   map:update(dt)
+  world:update(dt)
+  print(#map.layers)
 end
 
 function love.draw()
-  map:draw()
-  love.graphics.draw(player.img, player.x, player.y, player.rotate, 1, 1, player.width/2, player.height/2)
+
+  -- Draw the map and all objects within
+	love.graphics.setColor(1, 1, 1)
+	map:draw()
+
+	-- Draw Collision Map (useful for debugging)
+	love.graphics.setColor(1, 0, 0)
+	map:box2d_draw()
+
+  love.graphics.draw(player.img, player.x, player.y, player.rotate + math.pi/2, 1, 1, player.width/2, player.height/2)
 end
